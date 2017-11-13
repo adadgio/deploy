@@ -19,6 +19,7 @@ VERBOSE=""
 STATUS_CMD=0
 ROLLBACK_CMD=0
 CLEAN_CMD=0
+FULL_INSTALL=1
 
 source ${DIR}/import/utils.sh
 source ${DIR}/import/functions.sh
@@ -157,6 +158,7 @@ if [ ${VERSION} = ${CURR_VERSION} ]; then
     read -r -p "   ♘  Are you sure you want to deploy this version and overrite previous one? [y/N] " answ
     if [[ ${answ} =~ ^([yY][eE][sS]|[yY])$ ]]
     then
+        FULL_INSTALL=0
         echo ""
     else
         echo -e "${red}✗  Canceled, refused to deploy same version${nc}"
@@ -202,15 +204,15 @@ then
     echo -e "   ✓ Symlinked ${REMOTE_DIR}/web/assets --> ${CNF_BASE_REMOTE_DIR}/_files/data"
     ssh -t ${CNF_USER}@${CNF_HOST} "ln -sfn ${CNF_BASE_REMOTE_DIR}/_files/assets ${REMOTE_DIR}/web/assets" > /dev/null 2>&1
     ssh -t ${CNF_USER}@${CNF_HOST} "ln -sfn ${CNF_BASE_REMOTE_DIR}/_files/data ${REMOTE_DIR}/app/data" > /dev/null 2>&1
-    
+
     ###
     # Run composer install remotelky and install dependencies.
-    # Note: If environment vars are needed (verey likely http.protocol and http.host)
+    # Note: If environment vars are needed (very likely http.protocol and http.host)
     # you will need to make sur that in /etc/ssh/sshd_config, PermitUserEnvironment yes is set to yes
     # and that environment variables are then set in ~/.ssh/environment. That way you can remove them from .profile (or similar)
     ###
     echo -e "${blue}★  Running composer install${nc}"
-    ssh -t ${CNF_USER}@${CNF_HOST} "cd ${REMOTE_DIR} && composer install"
+    ssh -t ${CNF_USER}@${CNF_HOST} "cd ${REMOTE_DIR} && composer install" > /dev/null 2>&1
 
     ###
     # Execute remote deploy script when provided
@@ -224,8 +226,8 @@ then
 
     echo -e "${blue}★  Executing after deploy remote script${nc}"
     AFTER_DEPLOY_SCRIPT_PATH=${REMOTE_DIR}/deploy/post-deploy/after-deploy.sh
-    ssh -t -o LogLevel=QUIET ${CNF_USER}@${CNF_HOST} "bash ${AFTER_DEPLOY_SCRIPT_PATH} ${REMOTE_DIR}  ${ENV} ${DEBUG}"
-
+    ssh -t ${CNF_USER}@${CNF_HOST} "bash ${AFTER_DEPLOY_SCRIPT_PATH} ${REMOTE_DIR} ${ENV} ${DEBUG} ${FULL_INSTALL}"
+    # -o LogLevel=QUIET
     ###
     # Create the final release symlink
     ###
