@@ -2,13 +2,13 @@
 
 Deploy Symfony2 application without breaking end user service by using symlinks.
 
-Supports assets, symlinks, cache cleaering and all other common Sf2 post deploy tasks.
+Supports assets, symlinks, cache clearing and all other common Sf2 post deploy tasks.
 
 ## Installation
 
 ```
 cd /somewhere/convenient
-wget https://github.com/adadgio/deploy/archive/1.1.zip && unzip 1.1.zip && rm 1.1.zip
+wget https://github.com/adadgio/deploy/archive/1.2.zip && unzip 1.2.zip && rm 1.2.zip
 chmod +x deploy.sh
 sudo ln -s /somewhere/convenient/deploy.sh /usr/local/bin/deploy
 ```
