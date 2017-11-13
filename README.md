@@ -7,9 +7,10 @@ Supports assets, symlinks, cache cleaering and all other common Sf2 post deploy 
 ## Installation
 
 ```
-cd /Me # But use something that fits you!
-wget https://github.com/adadgio/???/archive/master.zip && unzip master.zip && rm master.zip
-sudo ln -s /Me/master/deploy.sh /usr/local/bin/deploy
+cd /somewhere/convenient
+wget https://github.com/adadgio/deploy/archive/1.1.zip && unzip 1.1.zip && rm 1.1.zip
+chmod +x deploy.sh
+sudo ln -s /somewhere/convenient/deploy.sh /usr/local/bin/deploy
 ```
 
 ## Prerequisites
