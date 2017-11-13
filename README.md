@@ -1,5 +1,9 @@
 # 360medical deployment script
 
+Deploy Symfony2 application without breaking end user service by using symlinks.
+
+Supports assets, symlinks, cache cleaering and all other common Sf2 post deploy tasks.
+
 ## Installation
 
 ```
