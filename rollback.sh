@@ -29,10 +29,10 @@ then
         # Create symlinks in the new release directory
         ###
         echo -e "${blue}★  Rolled back with symlinks${nc}"
-        echo -e "   ✓ Removed symlink to ${CNF_BASE_REMOTE_DIR}/current"
-        echo -e "   ✓ Symlinked ${REMOTE_DIR} --> ${CNF_BASE_REMOTE_DIR}/current"
-        ssh -t ${CNF_USER}@${CNF_HOST} "rm -f ${CNF_BASE_REMOTE_DIR}/current" > /dev/null 2>&1
-        ssh -t ${CNF_USER}@${CNF_HOST} "ln -sf ${REMOTE_DIR} ${CNF_BASE_REMOTE_DIR}/current" > /dev/null 2>&1
+        echo -e "   ✓ Removed symlink to ${CNF_BASE_REMOTE_DIR}/${LIVEDIR}"
+        echo -e "   ✓ Symlinked ${REMOTE_DIR} --> ${CNF_BASE_REMOTE_DIR}/${LIVEDIR}"
+        ssh -t ${CNF_USER}@${CNF_HOST} "rm -f ${CNF_BASE_REMOTE_DIR}/${LIVEDIR}" > /dev/null 2>&1
+        ssh -t ${CNF_USER}@${CNF_HOST} "ln -sf ${REMOTE_DIR} ${CNF_BASE_REMOTE_DIR}/${LIVEDIR}" > /dev/null 2>&1
 
     else
 
