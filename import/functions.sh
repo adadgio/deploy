@@ -38,8 +38,10 @@ function read_remote_version_file() {
     local VFILE=$3
 
     local V=`ssh -t -o LogLevel=QUIET $CUSR@${CHOST} "cat ${VFILE} 2>/dev/null || exit 0"`
-    
+    V=$(echo "$V" | tr -d '\040\011\012\015')
+
     if [ $? -eq 0 ]; then
+        # remove spaces, carriage returns, etc
         echo "${V}"
     else
         echo ""

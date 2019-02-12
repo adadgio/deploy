@@ -183,7 +183,7 @@ echo -e "${green}★  Starting deployment from @${GIT_BRANCH}${nc}"
 echo -e "${green}★  Debug mode: ${DEBUG}${nc}"
 
 # Make sur deploying a same version is allowed (ask the developer)
-if [ ${VERSION} = ${CURR_VERSION} ]; then
+if [ "$VERSION" = "$CURR_VERSION" ]; then
 
     echo -e "${purple}⚡ You are deploying version ${VERSION} which is already deployed${nc}"
     read -r -p "   ♘  Are you sure you want to deploy this version and overrite previous one? [y/N] " answ
@@ -273,7 +273,7 @@ then
     #     echo -e "${blue}★  Executing custom remote deploy remote script${nc}"
     #     # ssh -t ${CNF_USER}@${CNF_HOST} "bash ${AFTER_DEPLOY_SCRIPT_PATH} ${REMOTE_DIR} ${ENV} ${DEBUG} ${FULL_INSTALL} ${SFV}"
     # fi
-    
+
     ###
     # Create the final release symlink
     ###
