@@ -5,6 +5,7 @@
 SF_DIR=$1
 SF_ENV=$2
 SF_DBG=$3
+SF_VRS=$4
 source ${SF_DIR}/deploy/import/utils.sh
 
 bold=$(tput bold)
@@ -21,33 +22,58 @@ if [ -z "$2" ]; then
    echo -e "${red}  ✗ No 2nd argument supplied {SF_ENV}.${nc}"
    exit 2
 fi
+if [ -z "$3" ]; then
+   echo -e "${red}  ✗ No 3rd argument supplied {SF_DBG}.${nc}"
+   exit 2
+fi
+if [ -z "$4" ]; then
+   echo -e "${red}  ✗ No 4th  argument supplied {SF_VRS}.${nc}"
+   exit 2
+fi
 
 # Goto to symfony folder
 cd ${SF_DIR}
+echo -e "   ✓ Symfony version:${red}${SF_VRS}${nc}"
 
 ###
-# Post deploy script for Symfony 2 installation
+# Post deploy scripts for Symfony 2
 ###
-echo "   ✓ Deleting Symfony2 cache"
-sudo rm -rf app/cache/* && rm -rf app/logs/*
+if [[ "${SF_VRS}" == 2 ]]; then
+    echo "   ✓ Deleting Symfony2 cache"
+    sudo rm -rf app/cache/* && rm -rf app/logs/*
 
-echo "   ✓ Setting Symfony2 permissions"
-HTTPDUSER=$(ps axo user,comm | grep -E '[a]pache|[h]ttpd|[_]www|[w]ww-data|[n]ginx' | grep -v root | head -1 | cut -d\  -f1)
+    echo "   ✓ Setting Symfony2 permissions"
+    HTTPDUSER=$(ps axo user,comm | grep -E '[a]pache|[h]ttpd|[_]www|[w]ww-data|[n]ginx' | grep -v root | head -1 | cut -d\  -f1)
 
-sudo setfacl -dR -m u:www-data:rwX -m u:$(whoami):rwX app/cache app/logs
-sudo setfacl -R -m u:www-data:rwX -m u:$(whoami):rwX app/cache app/logs
+    sudo setfacl -dR -m u:www-data:rwX -m u:$(whoami):rwX app/cache app/logs
+    sudo setfacl -R -m u:www-data:rwX -m u:$(whoami):rwX app/cache app/logs
 
-echo "   ✓ Executing doctrine migrations"
-php app/console doctrine:migration:migrate --no-interaction > /dev/null 2>&1
+    echo "   ✓ Executing doctrine migrations"
+    php app/console doctrine:migration:migrate --no-interaction > /dev/null 2>&1
 
-echo "   ✓ Clearing Symfony2 cache"
-php app/console cache:clear --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
+    echo "   ✓ Clearing Symfony2 cache"
+    php app/console cache:clear --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
 
-echo "   ✓ Warming up the cache"
-php app/console cache:warmup --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
+    echo "   ✓ Warming up the cache"
+    php app/console cache:warmup --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
 
-echo "   ✓ Dumping Symfony2 assets"
-php app/console assetic:dump --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
+    echo "   ✓ Dumping Symfony2 assets"
+    php app/console assetic:dump --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
+
+    echo "   ✓ Custom command (sf dist update...)"
+    php app/console dist:update --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
+fi
+
+###
+# Post deploy scripts for Symfony 4
+###
+if [[ "${SF_VRS}" == 4 ]]; then
+    # echo "   ✓ Composer install again !"
+    # composer install --no-dev --optimize-autoloader
+    echo "   ✓ Clearing and warming up cache"
+    sudo rm -rf var/cache/* && rm -rf var/log/*
+    APP_ENV=${SF_ENV} APP_DEBUG=0 php bin/console cache:clear --env=${SF_ENV} ${SF_DBG} > /dev/null 2>&1
+fi
 
 # Doing this before assets or data symlinks script will produce following error
 # [Twig_Error_Loader]

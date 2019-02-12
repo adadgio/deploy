@@ -10,11 +10,13 @@ if [ -z "${ENV}" ]; then
    exit 1
 fi
 
-LOCAL_VERSION_NUMBER=${CURR_VERSION}
-REMOTE_VERSION_NUMBER=$(ssh ${CNF_USER}@${CNF_HOST} "cat ${CNF_BASE_REMOTE_DIR}/current/.version.${ENV}")
+source ${DIR}/import/functions.sh
+source ${CONFIG_FILEPATH}
+
+VFPATH=${CNF_BASE_REMOTE_DIR}/current/.version
+CURR_VERSION=$(read_remote_version_file ${CNF_USER} ${CNF_HOST} ${VFPATH})
 
 echo -e "${green}★  Version info${nc}"
-echo -e "   ✓ Current local version: ${brown}${LOCAL_VERSION_NUMBER}${nc}"
-echo -e "   ✓ Current live version: ${green}${REMOTE_VERSION_NUMBER}${nc}"
+echo -e "   ✓ Active live version: ${green}${CURR_VERSION}${nc}"
 
 exit 0

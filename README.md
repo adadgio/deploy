@@ -40,7 +40,7 @@ Rollback to a specific version.
 deploy --env=staging --version=2.2.0 --rollback
 ```
 
-Read current remotely deployed live version vs local version.
+Read remotely deployed live version vs local version.
 
 ```
 deploy --env=staging --status
@@ -51,3 +51,20 @@ Clean older version (safe).
 ```
 deploy --version=2.2.1 --env=staging --clean
 ```
+
+## Caveheats
+
+**Issues you might have**
+
+Remote composer install might fail for several reasons, usually missing dependencies or installs.
+
+- Make sure DBAL php mysql extension is installed
+- Make sure global environments variables are set in .profile
+- Make sure remote env variables are set in ~.ssh/environment, change PermitUserEnvironment yes in /etc/ssh/sshd_config and restart ssh
+
+**Install to think about**
+
+- Php extensions like mbstring, imagik, php-mysql,
+- apt-get install acl
+
+**Change a few php.ini values**
