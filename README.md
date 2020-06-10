@@ -8,7 +8,7 @@ Supports assets, symlinks, cache clearing and all other common Sf2 post deploy t
 
 ```
 cd /somewhere/convenient
-wget https://github.com/adadgio/deploy/archive/1.2.zip && unzip 1.2.zip && rm 1.2.zip
+wget https://github.com/adadgio/deploy/archive/1.2.zip && unzip 1.3.zip && rm 1.3.zip
 chmod +x deploy.sh
 sudo ln -s /somewhere/convenient/deploy.sh /usr/local/bin/deploy
 ```
