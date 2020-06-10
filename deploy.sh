@@ -237,7 +237,7 @@ then
         ssh -t ${CNF_USER}@${CNF_HOST} "ln -sfn ${CNF_BASE_REMOTE_DIR}/_files/assets ${REMOTE_DIR}/web/assets" > /dev/null 2>&1
         ssh -t ${CNF_USER}@${CNF_HOST} "ln -sfn ${CNF_BASE_REMOTE_DIR}/_files/data ${REMOTE_DIR}/app/data" > /dev/null 2>&1
     fi
-
+    
     # echo -e "   ✓ Symlinked ${REMOTE_DIR}/vendor --> ${CNF_BASE_REMOTE_DIR}/vendor"
     # ssh -t ${CNF_USER}@${CNF_HOST} "ln -sfn ${CNF_BASE_REMOTE_DIR}/vendor ${REMOTE_DIR}/vendor" > /dev/null 2>&1
 
