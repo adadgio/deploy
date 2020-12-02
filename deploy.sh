@@ -25,6 +25,9 @@ LIVEDIR=current
 NOASSETS=0
 SLACK_NOTIF=0
 SFV=2 # Symfony version
+FORCE_IP="0.0.0.0"
+DEL_PREV_VER=0
+NO_INTERACTION=0
 
 source ${DIR}/import/utils.sh
 source ${DIR}/import/functions.sh
@@ -63,6 +66,10 @@ case $i in
     SFV="${i#*=}"
     shift
     ;;
+    -ip=*|--ip=*)
+    FORCE_IP="${i#*=}"
+    shift
+    ;;
     --slack-notif)
     SLACK_NOTIF="${i#*=}"
     shift
@@ -73,6 +80,10 @@ case $i in
     ;;
     --rollback)
     ROLLBACK_CMD=1
+    shift
+    ;;
+    --no-interaction)
+    NO_INTERACTION=1
     shift
     ;;
     --status)
@@ -108,6 +119,13 @@ fi
 source ${CONFIG_FILEPATH}
 VFPATH=${CNF_BASE_REMOTE_DIR}/current/.version
 CURR_VERSION=$(read_remote_version_file ${CNF_USER} ${CNF_HOST} ${VFPATH})
+
+# Override IP if specified in command
+if [ "${FORCE_IP}" != "0.0.0.0" ]; then
+    CNF_HOST=${FORCE_IP}
+fi
+
+echo -e "${cyan}☕ Deploying to: ${CNF_HOST}${nc}"
 
 # create 1st version if version file does not exist
 if [ -z "${CURR_VERSION}" ]; then
@@ -173,11 +191,6 @@ fi
             source ${DIR}/rollback.sh
             exit 0
         fi
-        if [ ${CLEAN_CMD} == 1 ]; then
-            source ${DIR}/clean.sh
-            exit 0
-        fi
-
 
 echo -e "${green}★  Starting deployment from @${GIT_BRANCH}${nc}"
 echo -e "${green}★  Debug mode: ${DEBUG}${nc}"
@@ -186,24 +199,30 @@ echo -e "${green}★  Debug mode: ${DEBUG}${nc}"
 if [ "$VERSION" = "$CURR_VERSION" ]; then
 
     echo -e "${purple}⚡ You are deploying version ${VERSION} which is already deployed${nc}"
-    read -r -p "   ♘  Are you sure you want to deploy this version and overrite previous one? [y/N] " answ
-    if [[ ${answ} =~ ^([yY][eE][sS]|[yY])$ ]]
-    then
-        FULL_INSTALL=0
-        echo ""
-    else
-        echo -e "${red}✗  Canceled, refused to deploy same version${nc}"
-        exit 0
+
+    if [[ ${NO_INTERACTION} == 0 ]]; then
+        read -r -p "   ♘  Are you sure you want to deploy this version and overrite previous one? [y/N] " answ
+
+        if [[ ${answ} =~ ^([yY][eE][sS]|[yY])$ ]]
+        then
+            FULL_INSTALL=0
+        else
+            echo -e "${red}✗  Canceled, refusing to deploy on same version${nc}"
+            exit 0
+        fi
+    
     fi
 
 fi
 
-read -r -p "   ♘  Are you sure you want to deploy in [$ENV]? [y/N] " response
+if [[ ${NO_INTERACTION} == 0 ]]; then
+    read -r -p "   ♘  Are you sure you want to deploy in [$ENV]? [y/N] " response
+else
+    response="y"
+fi
+
 if [[ ${response} =~ ^([yY][eE][sS]|[yY])$ ]]
 then
-
-    echo ""
-
     ###
     # Synchronize all project files from local with remote.
     #
@@ -215,10 +234,9 @@ then
     #  P combines --progress and --partial (progress bar and interrupted transfer resume ability)
     ###
     # create remote directory of version if it does not exist
-    ssh -t ${CNF_USER}@${CNF_HOST} "test -d ${REMOTE_DIR} || mkdir ${REMOTE_DIR}"
-
-    echo -e "${green}★  Starting deployment from @${GIT_BRANCH}${nc}"
-    echo -e "${brown}★  Syncing files to remote${nc}"
+    ssh -t ${CNF_USER}@${CNF_HOST} "test -d ${REMOTE_DIR} || mkdir ${REMOTE_DIR}" > /dev/null 2>&1
+    
+    echo -e "${brown}★  Syncing files to remote...${nc}"
     rsync -avzP --delete --no-perms --no-owner --no-group --exclude .git/ .gitignore ${DIR}/ ${CNF_USER}@${CNF_HOST}:${REMOTE_DIR}/deploy > /dev/null 2>&1
     rsync -avzP --delete --no-perms --no-owner --no-group --exclude deploy/ --exclude-from "${LOCAL_DIR}/deploy/exclude.txt" ${LOCAL_DIR}/ ${CNF_USER}@${CNF_HOST}:${REMOTE_DIR} > /dev/null 2>&1
 
@@ -264,7 +282,7 @@ then
 
     echo -e "${blue}★  Executing after deploy remote script${nc}"
     AFTER_DEPLOY_SCRIPT_PATH=${REMOTE_DIR}/deploy/post-deploy/after-deploy.sh
-    ssh -t ${CNF_USER}@${CNF_HOST} "bash ${AFTER_DEPLOY_SCRIPT_PATH} ${REMOTE_DIR} ${ENV} ${DEBUG} ${FULL_INSTALL} ${SFV}"
+    ssh -t ${CNF_USER}@${CNF_HOST} "bash ${AFTER_DEPLOY_SCRIPT_PATH} ${REMOTE_DIR} ${ENV} ${DEBUG} ${FULL_INSTALL} ${SFV}" > /dev/null 2>&1
     # -o LogLevel=QUIET
 
     # execute "custom-deploy.sh" script if file exists on remote
@@ -292,8 +310,8 @@ then
     ###
     # Write active version number on remote server
     ###
-    echo -e "${cyan}☕ Written fresh .version file (0.0.1)${nc}"
-    echo "${VERSION}" | ssh -t ${CNF_USER}@${CNF_HOST} "cat > ${VFPATH}"
+    echo -e "   ✓  Written fresh .version file (${VERSION})"
+    echo "${VERSION}" | ssh -t ${CNF_USER}@${CNF_HOST} "cat > ${VFPATH}" > /dev/null 2>&1
 
     ###
     # Execute "./deploy/custom-post-deploy.sh" script if it exists
@@ -312,7 +330,15 @@ then
         source ${DIR}/notif/slack.sh
     fi
 
-    echo -e "${green}✓  Finished${nc}"
+    ###
+    # Cleaning previous verions directories
+    ###
+    if [ ${CLEAN_CMD} == 1 ] && [ "$VERSION" != "$CURR_VERSION" ]; then
+        echo -e "${blue}★  Cleaning previous version"
+        ssh -t ${CNF_USER}@${CNF_HOST} "rm -rf ${CNF_BASE_REMOTE_DIR}/version-${CURR_VERSION}" > /dev/null 2>&1
+    fi
+
+    echo -e "${green}☕  Finished${nc}"
     exit 0
 
 else

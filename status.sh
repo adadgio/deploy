@@ -16,7 +16,7 @@ source ${CONFIG_FILEPATH}
 VFPATH=${CNF_BASE_REMOTE_DIR}/current/.version
 CURR_VERSION=$(read_remote_version_file ${CNF_USER} ${CNF_HOST} ${VFPATH})
 
-echo -e "${green}★  Version info${nc}"
-echo -e "   ✓ Active live version: ${green}${CURR_VERSION}${nc}"
+#echo -e "${green}★  Version info${nc}"
+echo -e "${CURR_VERSION}"
 
 exit 0
