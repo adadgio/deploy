@@ -33,7 +33,7 @@ fi
 
 # Goto to symfony folder
 cd ${SF_DIR}
-echo -e "   ✓ Symfony version:${red}${SF_VRS}${nc}"
+echo -e "   ✓ Symfony version: ${red}${SF_VRS}${nc}"
 
 ###
 # Post deploy scripts for Symfony 2
